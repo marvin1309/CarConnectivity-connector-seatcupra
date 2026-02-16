@@ -1107,24 +1107,24 @@ class Connector(BaseConnector):
                 vehicle.climatization.settings.target_temperature._is_changeable = True  # pylint: disable=protected-access
 
                 target_temperature: Optional[float] = data['targetTemperatureInCelsius']
-                vehicle.climatization.settings.target_temperature._set_value(value=target_temperature,  # pylint: disable=protected-access
-                                                                             measured=captured_at,
-                                                                             unit=Temperature.C)
                 vehicle.climatization.settings.target_temperature.precision = 0.5
                 vehicle.climatization.settings.target_temperature.minimum = 16.0
                 vehicle.climatization.settings.target_temperature.maximum = 29.5
+                vehicle.climatization.settings.target_temperature._set_value(value=target_temperature,  # pylint: disable=protected-access
+                                                                             measured=captured_at,
+                                                                             unit=Temperature.C)
             elif 'targetTemperatureInFahrenheit' in data and data['targetTemperatureInFahrenheit'] is not None:
                 # pylint: disable-next=protected-access
                 vehicle.climatization.settings.target_temperature._add_on_set_hook(self.__on_air_conditioning_settings_change)
                 vehicle.climatization.settings.target_temperature._is_changeable = True  # pylint: disable=protected-access
 
                 target_temperature = data['targetTemperatureInFahrenheit']
-                vehicle.climatization.settings.target_temperature._set_value(value=target_temperature,  # pylint: disable=protected-access
-                                                                             measured=captured_at,
-                                                                             unit=Temperature.F)
                 vehicle.climatization.settings.target_temperature.precision = 0.5
                 vehicle.climatization.settings.target_temperature.minimum = 61.0
                 vehicle.climatization.settings.target_temperature.maximum = 85.5
+                vehicle.climatization.settings.target_temperature._set_value(value=target_temperature,  # pylint: disable=protected-access
+                                                                             measured=captured_at,
+                                                                             unit=Temperature.F)
             else:
                 vehicle.climatization.settings.target_temperature._set_value(None)  # pylint: disable=protected-access
             if 'climatisationWithoutExternalPower' in data and data['climatisationWithoutExternalPower'] is not None:
