@@ -1330,6 +1330,8 @@ class Connector(BaseConnector):
                         img = base64.b64decode(img)  # pyright: ignore[reportPossiblyUnboundVariable]
                         img = Image.open(io.BytesIO(img))  # pyright: ignore[reportPossiblyUnboundVariable]
                         cache_date = datetime.fromisoformat(cache_date_string)
+                        if cache_date.tzinfo is None:
+                            cache_date = cache_date.replace(tzinfo=timezone.utc)
                     if img is None or self.active_config['max_age_static'] is None \
                             or (cache_date is not None and cache_date < (datetime.now(tz=timezone.utc) - timedelta(seconds=self.active_config['max_age_static']))):
                         try:
@@ -1450,6 +1452,8 @@ class Connector(BaseConnector):
         if not no_cache and (self.active_config['max_age'] is not None and session.cache is not None and url in session.cache):
             data, cache_date_string = session.cache[url]
             cache_date = datetime.fromisoformat(cache_date_string)
+            if cache_date.tzinfo is None:
+                cache_date = cache_date.replace(tzinfo=timezone.utc)
         if data is None or self.active_config['max_age'] is None \
                 or (cache_date is not None and cache_date < (datetime.now(tz=timezone.utc) - timedelta(seconds=self.active_config['max_age']))):
             try:
@@ -1799,7 +1803,7 @@ class Connector(BaseConnector):
             # Check if the attribute changed is the target_temperature attribute
             precision: float = settings.target_temperature.precision if settings.target_temperature.precision is not None else 0.5
             if isinstance(attribute, TemperatureAttribute) and attribute.id == 'target_temperature':
-                value = round(value / settings.target_temperature.precision) * settings.target_temperature.precision
+                value = round(value / precision) * precision
                 setting_dict['targetTemperature'] = value
             else:
                 setting_dict['targetTemperature'] = round(settings.target_temperature.value / precision) * precision
