@@ -104,7 +104,7 @@ class SeatCupraCombustionVehicle(CombustionVehicle, SeatCupraVehicle):
             super().__init__(vin=vin, garage=garage, managing_connector=managing_connector, initialization=initialization)
 
 
-class SeatCupraHybridVehicle(HybridVehicle, SeatCupraVehicle):
+class SeatCupraHybridVehicle(HybridVehicle, SeatCupraElectricVehicle, SeatCupraCombustionVehicle):
     """
     Represents a Seat/Cupra hybrid vehicle.
     """
