@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 - No unreleased changes so far
 
+## [0.6.1] - 2026-03-26
+### Fixed
+- Fix a bug for min/max value and precision
+- Fix problem where hybrid vehicles would not have charging attributes
+- Fix 404 error with connection status endpoint
+- Various improvements (Thanks to user @Pulpyyyy)
+
+### Added
+- Timestamp for parking position now available from the API
+
 ## [0.6] - 2026-01-31
 ### Added
 - Added support for fetching charging station information based on latitude and longitude
@@ -102,7 +112,8 @@ reupload to pypi
 ## [0.1] - 2025-03-02
 Initial release, let's go and give this to the public to try out...
 
-[unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra/compare/v0.6...HEAD
+[unreleased]: https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra/releases/tag/v0.6.1
 [0.6]: https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra/releases/tag/v0.6
 [0.5.2]: https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra/releases/tag/v0.5.2
 [0.5.1]: https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra/releases/tag/v0.5.1
