@@ -518,26 +518,6 @@ class Connector(BaseConnector):
         if vin is None:
             raise APIError('VIN is missing')
 
-        url = f'https://ola.prod.code.seat.cloud.vwgroup.com/vehicles/{vin}/connection'
-        vehicle_connection_data: Dict[str, Any] | None = self._fetch_data(url=url, session=self.session, no_cache=no_cache)
-        if vehicle_connection_data is not None:
-            if 'connection' in vehicle_connection_data and vehicle_connection_data['connection'] is not None \
-                    and 'mode' in vehicle_connection_data['connection'] and vehicle_connection_data['connection']['mode'] is not None:
-                if vehicle_connection_data['connection']['mode'] in [item.value for item in GenericVehicle.ConnectionState]:
-                    connection_state: GenericVehicle.ConnectionState = GenericVehicle.ConnectionState(vehicle_connection_data['connection']['mode'])
-                    if vehicle.connection_state.value != GenericVehicle.ConnectionState.ONLINE:
-                        vehicle.connection_state._set_value(connection_state)  # pylint: disable=protected-access
-                    vehicle.official_connection_state = connection_state
-                else:
-                    vehicle.connection_state._set_value(GenericVehicle.ConnectionState.UNKNOWN)  # pylint: disable=protected-access
-                    LOG_API.info('Unknown connection state %s', vehicle_connection_data['connection']['mode'])
-                log_extra_keys(LOG_API, f'/api/v2/vehicles/{vin}/connection', vehicle_connection_data['connection'], {'mode'})
-            else:
-                vehicle.connection_state._set_value(None)  # pylint: disable=protected-access
-            log_extra_keys(LOG_API, f'/api/v2/vehicles/{vin}/connection', vehicle_connection_data, {'connection'})
-        else:
-            vehicle.connection_state._set_value(None)  # pylint: disable=protected-access
-
         url = f'https://ola.prod.code.seat.cloud.vwgroup.com/v2/vehicles/{vin}/status'
         vehicle_status_data: Dict[str, Any] | None = self._fetch_data(url=url, session=self.session, no_cache=no_cache)
         if vehicle_status_data:
@@ -829,26 +809,22 @@ class Connector(BaseConnector):
         vin = vehicle.vin.value
         if vin is None:
             raise APIError('VIN is missing')
-        url = f'https://ola.prod.code.seat.cloud.vwgroup.com/vehicles/{vin}/connection'
+        url = f'https://ola.prod.code.seat.cloud.vwgroup.com/v1/vehicles/{vin}/remote-availability'
         data: Dict[str, Any] | None = self._fetch_data(url=url, session=self.session, no_cache=no_cache)
-        #  {'connection': {'mode': 'online'}
+        #  {'remote-availability': 'online'}
         if data is not None:
-            if 'connection' in data and data['connection'] is not None:
-                if 'mode' in data['connection'] and data['connection']['mode'] is not None:
-                    if data['connection']['mode'] in [item.value for item in GenericVehicle.ConnectionState]:
-                        connection_state: GenericVehicle.ConnectionState = GenericVehicle.ConnectionState(data['connection']['mode'])
+            if 'remote-availability' in data and data['remote-availability'] is not None:
+                    if data['remote-availability'] in [item.value for item in GenericVehicle.ConnectionState]:
+                        connection_state: GenericVehicle.ConnectionState = GenericVehicle.ConnectionState(data['remote-availability'])
                         if vehicle.connection_state.value != GenericVehicle.ConnectionState.ONLINE:
                             vehicle.connection_state._set_value(connection_state)  # pylint: disable=protected-access
                         vehicle.official_connection_state = connection_state
                     else:
                         vehicle.connection_state._set_value(GenericVehicle.ConnectionState.UNKNOWN)  # pylint: disable=protected-access
-                        LOG_API.info('Unknown connection state %s', data['connection']['mode'])
-                else:
-                    vehicle.connection_state._set_value(None)  # pylint: disable=protected-access
-                log_extra_keys(LOG_API, 'connection status', data['connection'],  {'mode'})
+                        LOG_API.info('Unknown connection state %s', data['remote-availability'])
             else:
                 vehicle.connection_state._set_value(None)  # pylint: disable=protected-access
-            log_extra_keys(LOG_API, 'connection status', data,  {'connection'})
+            log_extra_keys(LOG_API, 'remote availability', data,  {'remote-availability'})
         return vehicle
 
     def fetch_parking_position(self, vehicle: SeatCupraVehicle, no_cache: bool = False) -> SeatCupraVehicle:
@@ -873,6 +849,11 @@ class Connector(BaseConnector):
         url = f'https://ola.prod.code.seat.cloud.vwgroup.com/v1/vehicles/{vin}/parkingposition'
         data: Dict[str, Any] | None = self._fetch_data(url=url, session=self.session, no_cache=no_cache, allow_empty=True)
         if data is not None:
+            if 'updatedAt' in data and data['updatedAt'] is not None:
+                captured_at: Optional[datetime] = robust_time_parse(data['updatedAt'])
+                self._update_online_tracking(vehicle=vehicle, last_measurement=captured_at)
+            else:
+                captured_at: Optional[datetime] = None
             if 'lat' in data and data['lat'] is not None:
                 latitude: Optional[float] = data['lat']
             else:
@@ -881,12 +862,12 @@ class Connector(BaseConnector):
                 longitude: Optional[float] = data['lon']
             else:
                 longitude = None
-            vehicle.position.latitude._set_value(latitude)  # pylint: disable=protected-access
+            vehicle.position.latitude._set_value(latitude, captured_at)  # pylint: disable=protected-access
             vehicle.position.latitude.precision = 0.000001
-            vehicle.position.longitude._set_value(longitude)  # pylint: disable=protected-access
+            vehicle.position.longitude._set_value(longitude, captured_at)  # pylint: disable=protected-access
             vehicle.position.longitude.precision = 0.000001
             vehicle.position.position_type._set_value(Position.PositionType.PARKING)  # pylint: disable=protected-access
-            log_extra_keys(LOG_API, 'parkingposition', data,  {'lat', 'lon'})
+            log_extra_keys(LOG_API, 'parkingposition', data,  {'lat', 'lon', 'updatedAt'})
         else:
             vehicle.position.latitude._set_value(None)  # pylint: disable=protected-access
             vehicle.position.longitude._set_value(None)  # pylint: disable=protected-access
