@@ -9,7 +9,13 @@ import requests
 from carconnectivity_services.base.service import ServiceType
 from carconnectivity_services.location.location_service import LocationService
 from carconnectivity.charging_station import ChargingStation
-from carconnectivity_connectors.seatcupra.connector import STATUS_REQUEST_HEADERS
+
+STATUS_REQUEST_HEADERS = {
+    'app-market': 'android',
+    'app-brand': 'cupra',
+    'app-version': '2.15.0',
+    'origin': 'app'
+}
 
 if TYPE_CHECKING:
     from typing import Optional
