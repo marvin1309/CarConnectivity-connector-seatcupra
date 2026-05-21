@@ -68,6 +68,13 @@ if TYPE_CHECKING:
 LOG: logging.Logger = logging.getLogger("carconnectivity.connectors.seatcupra")
 LOG_API: logging.Logger = logging.getLogger("carconnectivity.connectors.seatcupra-api-debug")
 
+STATUS_REQUEST_HEADERS = {
+    'app-market': 'android',
+    'app-brand': 'cupra',
+    'app-version': '2.15.0',
+    'origin': 'app'
+}
+
 
 # pylint: disable=too-many-lines
 class Connector(BaseConnector):
@@ -1442,7 +1449,7 @@ class Connector(BaseConnector):
         if data is None or self.active_config['max_age'] is None \
                 or (cache_date is not None and cache_date < (datetime.now(tz=timezone.utc) - timedelta(seconds=self.active_config['max_age']))):
             try:
-                status_response: requests.Response = session.get(url, allow_redirects=False)
+                status_response: requests.Response = session.get(url, allow_redirects=False, headers=STATUS_REQUEST_HEADERS)
                 self._record_elapsed(status_response.elapsed)
                 if status_response.status_code in (requests.codes['ok'], requests.codes['multiple_status']):
                     data = status_response.json()
@@ -1461,7 +1468,7 @@ class Connector(BaseConnector):
                     except Exception as refresh_error:
                         LOG.info('Token refresh failed (%s), attempting full login', refresh_error)
                         session.login_with_retry()
-                    status_response = session.get(url, allow_redirects=False)
+                    status_response = session.get(url, allow_redirects=False, headers=STATUS_REQUEST_HEADERS)
 
                     if status_response.status_code in (requests.codes['ok'], requests.codes['multiple_status']):
                         data = status_response.json()
